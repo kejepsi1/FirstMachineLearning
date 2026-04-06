@@ -1,3 +1,4 @@
+import joblib
 import pandas as pd
 import numpy as np
 from sklearn.model_selection import train_test_split
@@ -75,3 +76,6 @@ plt.tight_layout()
 
 # Pokazujemy okienko z wykresem
 plt.show()
+
+joblib.dump(model_rf, 'moj_model_wyceny.pkl')
+print("\nSukces: Model został zapisany na dysku jako 'moj_model_wyceny.pkl'!")
