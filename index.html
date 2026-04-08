@@ -80,7 +80,8 @@
 
         // 4. Wysyłamy zapytanie do naszego Dockera!
         try {
-            const odpowiedz = await fetch('https://wycena-nieruchomosci-ai.onrender.com/wycen', {
+            const adresAPI = '/wycen';
+            const odpowiedz = await fetch(adresAPI, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json'

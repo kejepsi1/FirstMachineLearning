@@ -1,4 +1,5 @@
 from fastapi import FastAPI
+from fastapi.responses import FileResponse
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 import pandas as pd
@@ -27,7 +28,7 @@ class Mieszkanie(BaseModel):
 
 @app.get("/")
 def powitanie():
-    return {"wiadomosc": "Witaj w API Wyceny Nieruchomości. Przejdź do /docs aby przetestować endpointy."}
+    return FileResponse("index.html")
 
 @app.post("/wycen")
 def wycen_mieszkanie(dane: Mieszkanie):
