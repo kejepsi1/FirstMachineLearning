@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Wycena Nieruchomości AI</title>
+    <style>
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f4f7f6; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; }
+        .karta { background-color: white; padding: 30px; border-radius: 10px; box-shadow: 0 4px 8px rgba(0,0,0,0.1); width: 100%; max-width: 400px; }
+        h2 { text-align: center; color: #333; }
+        .grupa { margin-bottom: 15px; }
+        label { display: block; margin-bottom: 5px; color: #666; font-weight: bold;}
+        input, select { width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 5px; box-sizing: border-box; }
+        button { width: 100%; padding: 12px; background-color: #28a745; color: white; border: none; border-radius: 5px; font-size: 16px; cursor: pointer; font-weight: bold; margin-top: 10px;}
+        button:hover { background-color: #218838; }
+        #wynik { margin-top: 20px; padding: 15px; background-color: #e9ecef; border-radius: 5px; text-align: center; font-size: 18px; font-weight: bold; color: #0056b3; display: none;}
+    </style>
+</head>
+<body>
+
+<div class="karta">
+    <h2>Sztuczna Inteligencja wyceni Twoje mieszkanie! 🏠</h2>
+
+    <div class="grupa">
+        <label>Metraż (m²):</label>
+        <input type="number" id="metraz" value="50" min="10">
+    </div>
+
+    <div class="grupa">
+        <label>Liczba pokoi:</label>
+        <input type="number" id="pokoje" value="2" min="1">
+    </div>
+
+    <div class="grupa">
+        <label>Wiek budynku (lata):</label>
+        <input type="number" id="wiek" value="5" min="0">
+    </div>
+
+    <div class="grupa">
+        <label>Dzielnica:</label>
+        <select id="dzielnica">
+            <option value="centrum">Centrum</option>
+            <option value="przedmiescia">Przedmieścia</option>
+            <option value="obrzeza">Obrzeża</option>
+        </select>
+    </div>
+
+    <button onclick="wycenMieszkanie()">Oblicz wartość</button>
+
+    <div id="wynik"></div>
+</div>
+
+<script>
+    async function wycenMieszkanie() {
+        // 1. Pobieramy dane z formularza
+        const metraz = parseFloat(document.getElementById('metraz').value);
+        const pokoje = parseInt(document.getElementById('pokoje').value);
+        const wiek = parseInt(document.getElementById('wiek').value);
+        const dzielnica = document.getElementById('dzielnica').value;
+
+        // 2. Tłumaczymy tekst z listy rozwijanej na zera i jedynki dla naszego modelu (One-Hot Encoding w praktyce!)
+        let dzielnica_obrzeza = 0;
+        let dzielnica_przedmiescia = 0;
+
+        if (dzielnica === 'obrzeza') {
+            dzielnica_obrzeza = 1;
+        } else if (dzielnica === 'przedmiescia') {
+            dzielnica_przedmiescia = 1;
+        }
+        // Jeśli to Centrum, obie wartości zostają na 0 (model to zrozumie, bo tak się uczył)
+
+        // 3. Budujemy paczkę danych do wysłania
+        const paczkaDanych = {
+            "Metraz": metraz,
+            "Pokoje": pokoje,
+            "Wiek": wiek,
+            "Dzielnica_Obrzeza": dzielnica_obrzeza,
+            "Dzielnica_Przedmiescia": dzielnica_przedmiescia
+        };
+
+        // 4. Wysyłamy zapytanie do naszego Dockera!
+        try {
+            const odpowiedz = await fetch('http://127.0.0.1:8000/wycen', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(paczkaDanych)
+            });
+
+            const wynikJson = await odpowiedz.json();
+
+            // 5. Pokazujemy wynik na ekranie
+            const okienkoWyniku = document.getElementById('wynik');
+            okienkoWyniku.style.display = 'block';
+
+            // Formatujemy liczbę, żeby ładnie wyglądała (np. 450 000 zł)
+            const ladnaCena = new Intl.NumberFormat('pl-PL').format(wynikJson.szacowana_cena_zl);
+            okienkoWyniku.innerText = "Szacowana wartość: " + ladnaCena + " zł";
+
+        } catch (error) {
+            alert("Błąd połączenia z serwerem. Upewnij się, że Docker działa na porcie 8000!");
+        }
+    }
+</script>
+
+</body>
+</html>
